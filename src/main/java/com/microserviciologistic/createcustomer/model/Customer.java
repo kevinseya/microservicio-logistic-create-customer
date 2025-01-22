@@ -83,7 +83,7 @@ public class Customer {
         return address;
     }
 
-    public void setId(String Address) {
+    public void setAddress(String Address) {
         this.address = address;
     }
 
