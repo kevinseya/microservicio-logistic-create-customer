@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +34,7 @@ public class CustomerController {
             @ApiResponse(responseCode = "201", description = "Customer created successfully"),
             @ApiResponse(responseCode = "500", description = "Server error")
     })
-    public ResponseEntity<Customer> createUser(@RequestBody Customer customer) {
+    public ResponseEntity<Customer> createUser(@Valid @RequestBody Customer customer) {
         try {
             Customer createdCustomer = customerService.createCustomer(customer);
             return ResponseEntity.status(201).body(createdCustomer);
