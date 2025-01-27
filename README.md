@@ -58,5 +58,5 @@ POST /api/customers/create Content-Type: application/json
     }
 ```
 **Response code:**
-- **`201 Created:`** User created successfully.
+- **`201 Created:`** Customer created successfully.
 - **`500 Internal Server Error:`** Server error.
