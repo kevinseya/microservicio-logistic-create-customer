@@ -20,10 +20,10 @@ public class CustomerService {
 
     public Customer createCustomer(Customer customer) {
         try {
-            System.out.println("Guardando el cliente en la base de datos: " + customer);
+            System.out.println("Saving customer on database: " + customer);
             return customerRepository.save(customer);
         } catch (DataAccessException e) {
-            System.err.println("Error al guardar el cliente: " + e.getMessage());
+            System.err.println("Error to save customer: " + e.getMessage());
             throw new ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     "Error connecting to the database",

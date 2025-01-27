@@ -38,11 +38,11 @@ public class CustomerController {
             Customer createdCustomer = customerService.createCustomer(customer);
             return ResponseEntity.status(201).body(createdCustomer);
         } catch (Exception e) {
-            System.err.println("Error al crear el cliente: " + e.getMessage());
+            System.err.println("Error to create customer: " + e.getMessage());
 
             throw new ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Error al crear el cliente: " + e.getMessage(),e
+                    "Error to create customer: " + e.getMessage(),e
             );
         }
     }

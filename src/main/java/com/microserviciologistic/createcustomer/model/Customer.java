@@ -1,36 +1,55 @@
 package com.microserviciologistic.createcustomer.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import java.util.UUID;
 
 @Entity(name = "customer")
 public class Customer {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(columnDefinition = "BINARY(16)", unique = true, nullable = false)    @Schema(description = "Unique identifier for the user",
+            example = "550e8400-e29b-41d4-a716-446655440000",
+            accessMode = Schema.AccessMode.READ_ONLY)
+    private UUID id;
 
     @Column(nullable = false)
+    @NotBlank(message = "Name is required")
+    @Schema(description = "Name of the customerr", example = "John", required = true)
     private String name;
 
     @Column(nullable = false)
+    @NotBlank(message = "Lastname is required")
+    @Schema(description = "Lastname of the customer", example = "Doe", required = true)
     private String lastname;
 
     @Column(nullable = false)
+    @Email(message = "Email should be valid")
+    @Schema(description = "Email of the customer", example = "john.doe@example.com", required = true)
     private String email;
 
     @Column(nullable = false)
+    @Pattern(regexp = "^\\d{10}$", message = "Phone number must have 10 digits")
+    @Schema(description = "Phone number of the customer", example = "1234567890", required = true)
     private String phone;
 
     @Column(nullable = false)
+    @Size(min = 6, message = "Password must have at least 6 characters")
+    @Schema(description = "Password of the customer", example = "securePassword123", required = true)
     private String password;
     @Column(nullable = false)
+    @NotBlank(message = "Address is required")
+    @Schema(description = "Address of the customer", example = "Gonzalo Hidalgo y Gualberto Perez S9-50", required = true)
     private String address;
 
-    public Long getId() {
-        return id;
-    }
+    public UUID getId() { return id; }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
@@ -83,8 +102,6 @@ public class Customer {
         return address;
     }
 
-    public void setAddress(String Address) {
-        this.address = address;
-    }
+    public void setAddress(String address) { this.address = address; }
 
 }
