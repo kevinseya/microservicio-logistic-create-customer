@@ -5,6 +5,7 @@ import com.microserviciologistic.createcustomer.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -12,14 +13,19 @@ import org.springframework.web.server.ResponseStatusException;
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public CustomerService(CustomerRepository customerRepository) {
+    public CustomerService(CustomerRepository customerRepository, PasswordEncoder passwordEncoder) {
         this.customerRepository = customerRepository;
+        this.passwordEncoder = passwordEncoder;
+
     }
 
     public Customer createCustomer(Customer customer) {
         try {
+            customer.setPassword(passwordEncoder.encode(customer.getPassword()));
+
             System.out.println("Saving customer on database: " + customer);
             return customerRepository.save(customer);
         } catch (DataAccessException e) {

@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import org.hibernate.annotations.Type;
+
 import java.util.UUID;
 
 @Entity(name = "customer")
@@ -13,9 +15,6 @@ public class Customer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(columnDefinition = "BINARY(16)", unique = true, nullable = false)    @Schema(description = "Unique identifier for the user",
-            example = "550e8400-e29b-41d4-a716-446655440000",
-            accessMode = Schema.AccessMode.READ_ONLY)
     private UUID id;
 
     @Column(nullable = false)
