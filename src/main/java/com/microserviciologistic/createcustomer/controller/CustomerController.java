@@ -35,7 +35,7 @@ public class CustomerController {
     }
 
     // Endpoint to CREATE a client and send notification
-    @PostMapping
+    @PostMapping("/create")
     @Operation(summary = "Create customer", description = "Endpoint to create customers and send notification.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Customer created and notification sent successfully"),

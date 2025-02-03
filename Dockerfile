@@ -21,4 +21,4 @@ RUN mvn clean package -DskipTests
 EXPOSE 80
 
 # Comando para ejecutar la aplicación
-ENTRYPOINT ["java", "-jar", "/app/target/logistic_create_user-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java", "-jar", "/app/target/logistic_create_customer-0.0.1-SNAPSHOT.jar"]
