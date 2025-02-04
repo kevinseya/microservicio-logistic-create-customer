@@ -19,8 +19,8 @@ public class CustomerService {
     private final RestTemplate restTemplate;
     private final PasswordEncoder passwordEncoder;
 
-    private final String notificationServiceUrl = "http://35.174.111.175:5000/notify"; // Microservicio de notificación
-    private final String checkNotificationUrl = "http://35.174.111.175:5000/check_notification?customer_id="; // Verificación previa
+    private final String notificationServiceUrl = "http://100.26.98.16:5000/notify"; // Microservicio de notificación
+    private final String checkNotificationUrl = "http://100.26.98.16:5000/check_notification?customer_id="; // Verificación previa
 
     @Autowired
     public CustomerService(CustomerRepository customerRepository, RestTemplate restTemplate, PasswordEncoder passwordEncoder) {
