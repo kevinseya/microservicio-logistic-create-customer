@@ -1,24 +1,11 @@
-# Usar una imagen base con OpenJDK
-FROM openjdk:17-slim
-
-# Instalar Maven
-RUN apt-get update && apt-get install -y maven
-
-# Establecer el directorio de trabajo
+FROM maven:3.8.3-openjdk-17 AS builder
+ADD . /app
 WORKDIR /app
-
-# Copiar el archivo pom.xml y descargar las dependencias de Maven
-COPY pom.xml .
-RUN mvn dependency:go-offline
-
-# Copiar el código fuente de la aplicación
-COPY src /app/src
-
-# Compilar y empaquetar la aplicación
 RUN mvn clean package -DskipTests
 
-# Exponer el puerto en el que la aplicación correrá
-EXPOSE 80
+FROM openjdk:17.0.1-jdk-slim
 
-# Comando para ejecutar la aplicación
-ENTRYPOINT ["java", "-jar", "/app/target/logistic_create_customer-0.0.1-SNAPSHOT.jar"]
+COPY --from=builder /app/target/create-customer-0.0.1-SNAPSHOT.jar /app/app.jar
+
+EXPOSE 8080
+ENTRYPOINT ["java","-jar","/app/app.jar"]
