@@ -9,7 +9,7 @@
         <relativePath/>
     </parent>
     <groupId>com.microserviciologistic</groupId>
-    <artifactId>createcustomer</artifactId>
+    <artifactId>create-customer</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>create-customer</name>
     <description>create-customer</description>
