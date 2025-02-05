@@ -18,14 +18,17 @@ public class CustomerService {
     private final CustomerRepository customerRepository;
     private final RestTemplate restTemplate;
     private final PasswordEncoder passwordEncoder;
+    private final WebSocketClientService webSocketClientService;
+
 
     private final String notificationServiceUrl = "http://100.26.98.16:5000/notify"; // Microservicio de notificación
     private final String checkNotificationUrl = "http://100.26.98.16:5000/check_notification?customer_id="; // Verificación previa
 
     @Autowired
-    public CustomerService(CustomerRepository customerRepository, RestTemplate restTemplate, PasswordEncoder passwordEncoder) {
+    public CustomerService(CustomerRepository customerRepository, WebSocketClientService webSocketClientService, RestTemplate restTemplate, PasswordEncoder passwordEncoder) {
         this.customerRepository = customerRepository;
         this.restTemplate = restTemplate;
+        this.webSocketClientService = webSocketClientService;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -39,7 +42,9 @@ public class CustomerService {
             customer.setPassword(passwordEncoder.encode(customer.getPassword()));
             System.out.println("🟢 Guardando cliente en la base de datos: " + customer);
             Customer createdCustomer = customerRepository.save(customer);
-
+            //EVENT WEBSOCKET
+            System.out.println("Enviando evento WebSocket para creación de usuario...");
+            webSocketClientService.sendEvent("CREATE", createdCustomer);
             // **We check if the notification has already been sent before sending it**
             if (!checkIfNotificationExists(createdCustomer.getId())) {
                 sendNotification(createdCustomer);
