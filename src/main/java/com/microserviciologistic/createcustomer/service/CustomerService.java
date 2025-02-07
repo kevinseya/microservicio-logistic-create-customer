@@ -3,6 +3,7 @@ package com.microserviciologistic.createcustomer.service;
 import com.microserviciologistic.createcustomer.model.Customer;
 import com.microserviciologistic.createcustomer.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,9 +21,10 @@ public class CustomerService {
     private final PasswordEncoder passwordEncoder;
     private final WebSocketClientService webSocketClientService;
 
-
-    private final String notificationServiceUrl = "http://100.26.98.16:5000/notify"; // Microservicio de notificación
-    private final String checkNotificationUrl = "http://100.26.98.16:5000/check_notification?customer_id="; // Verificación previa
+    @Value("${URL_WEBHOOK}")
+    private String webhookUrl;
+    private final String notificationServiceUrl = webhookUrl+"/notify"; // Microservicio de notificación
+    private final String checkNotificationUrl = webhookUrl+"/check_notification?customer_id="; // Verificación previa
 
     @Autowired
     public CustomerService(CustomerRepository customerRepository, WebSocketClientService webSocketClientService, RestTemplate restTemplate, PasswordEncoder passwordEncoder) {
@@ -34,30 +36,30 @@ public class CustomerService {
 
     public Customer createCustomer(Customer customer) {
         if (customer.getEmail() == null || customer.getEmail().isEmpty()) {
-            throw new IllegalArgumentException("⚠️ Email no puede estar vacío.");
+            throw new IllegalArgumentException("Email cannot be null or empty.");
         }
 
         try {
             //  Encrypt password before saving
             customer.setPassword(passwordEncoder.encode(customer.getPassword()));
-            System.out.println("🟢 Guardando cliente en la base de datos: " + customer);
+            System.out.println("Save user on database: " + customer);
             Customer createdCustomer = customerRepository.save(customer);
             //EVENT WEBSOCKET
-            System.out.println("Enviando evento WebSocket para creación de usuario...");
+            System.out.println("Enviando evento WebSocket para creación de cliente...");
             webSocketClientService.sendEvent("CREATE", createdCustomer);
             // **We check if the notification has already been sent before sending it**
             if (!checkIfNotificationExists(createdCustomer.getId())) {
                 sendNotification(createdCustomer);
             } else {
-                System.out.println("⚠️ Cliente ya notificado previamente, no se enviará otra vez.");
+                System.out.println("Client verified, not sent again.");
             }
 
             return createdCustomer;
         } catch (DataAccessException e) {
-            System.err.println("❌ Error al guardar usuario: " + e.getMessage());
+            System.err.println(" Error to save user: " + e.getMessage());
             throw new ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
-                    "❌ Error al conectar con la base de datos",
+                    " Error connecting to the database",
                     e
             );
         }
@@ -71,8 +73,8 @@ public class CustomerService {
             ResponseEntity<Boolean> response = restTemplate.getForEntity(checkNotificationUrl + customerId, Boolean.class);
             return response.getBody() != null && response.getBody();
         } catch (Exception e) {
-            System.err.println("⚠️ Error verificando notificación en MongoDB: " + e.getMessage());
-            return false; // En caso de error, asumimos que no existe y procedemos con el envío
+            System.err.println("Error verified notification onn MongoDB: " + e.getMessage());
+            return false;
         }
     }
 
@@ -94,13 +96,13 @@ public class CustomerService {
             ResponseEntity<String> response = restTemplate.exchange(notificationServiceUrl, HttpMethod.POST, request, String.class);
 
             if (response.getStatusCode() == HttpStatus.OK) {
-                System.out.println("✅ Notificación enviada correctamente.");
+                System.out.println("Notification sent correctly.");
             } else {
-                System.err.println("⚠️ Error al enviar notificación: " + response.getStatusCode());
+                System.err.println("Error at sent notification on webhook:" + response.getStatusCode());
             }
 
         } catch (Exception e) {
-            System.err.println("⚠️ Error al enviar notificación: " + e.getMessage());
+            System.err.println("Error at sent notification on webhook: " + e.getMessage());
             e.printStackTrace();
         }
     }
