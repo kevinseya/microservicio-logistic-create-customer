@@ -1,78 +1,73 @@
 package com.microserviciologistic.createcustomer.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microserviciologistic.createcustomer.config.PlainWebSocketClient;
+import com.microserviciologistic.createcustomer.websocket.PlainWebSocketClient;
+import com.microserviciologistic.createcustomer.websocket.WebSocketMessageHandler;
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;
 
 @Service
 public class WebSocketClientService {
-
-    private static final String WEBSOCKET_URL = "ws://3.91.247.144:5002/ws";
+    @Value("${URL_WEBSOCKET}")
+    private String WEBSOCKET_URL;
     private PlainWebSocketClient webSocketClient;
+    private final WebSocketMessageHandler messageHandler;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ReconnectionScheduler reconnectionScheduler;
+
+    public WebSocketClientService(WebSocketMessageHandler messageHandler, ReconnectionScheduler reconnectionScheduler) {
+        this.messageHandler = messageHandler;
+        this.reconnectionScheduler = reconnectionScheduler;
+    }
 
     @PostConstruct
     public void init() {
         connectWebSocket();
     }
 
-    // Synchronized method to avoid race conditions on reconnection
     private synchronized void connectWebSocket() {
         try {
-            System.out.println("Trying to connect to WebSocket on: " + WEBSOCKET_URL);
-            webSocketClient = new PlainWebSocketClient(new URI(WEBSOCKET_URL));
+            System.out.println("Connecting to WebSocket at: " + WEBSOCKET_URL);
+            webSocketClient = new PlainWebSocketClient(
+                    new URI(WEBSOCKET_URL),
+                    this::handleMessage,
+                    () -> {
+                        System.err.println("WebSocket disconnected! Attempting reconnection...");
+                        reconnectionScheduler.scheduleReconnect(this::connectWebSocket);
+                    }
+            );
+            reconnectionScheduler.cancelReconnect();
         } catch (Exception e) {
-            System.err.println("Error to connect to WebSocket: " + e.getMessage());
-            scheduleReconnect();
+            System.err.println("Error connecting WebSocket: " + e.getMessage());
+            reconnectionScheduler.scheduleReconnect(this::connectWebSocket);
         }
     }
 
-    // Recconection after 5 seconds
-    private void scheduleReconnect() {
-        new Thread(() -> {
-            try {
-                Thread.sleep(5000);
-                System.out.println("Reconnection to WebSocket...");
-                connectWebSocket();
-            } catch (InterruptedException e) {
-                System.err.println("Error of reconnection : " + e.getMessage());
-            }
-        }).start();
+    private void handleMessage(String message) {
+        System.out.println("Message received: " + message);
+        messageHandler.processMessage(message);
     }
 
     public void sendEvent(String operation, Object data) {
         if (webSocketClient == null || !webSocketClient.isConnected()) {
-            System.err.println("WebSocket is not connected. Trying reconnect...");
-            connectWebSocket();
+            System.err.println("WebSocket not connected. Attempting reconnection...");
+            reconnectionScheduler.scheduleReconnect(this::connectWebSocket);
             return;
         }
+
         try {
-            String jsonMessage = objectMapper.writeValueAsString(new WebSocketMessage(operation, data));
+            String jsonPayload = objectMapper.writeValueAsString(data);
+            String jsonMessage = String.format(
+                    "{\"type\":\"publish\", \"topic\":\"user.%s\", \"payload\":%s}",
+                    operation.toLowerCase(), jsonPayload
+            );
             webSocketClient.sendMessage(jsonMessage);
+            System.out.println("Message Sent: " + jsonMessage);
         } catch (Exception e) {
-            System.err.println("Error to sent message: " + e.getMessage());
-        }
-    }
-
-    // Inner class to structure the message to be sent
-    private static class WebSocketMessage {
-        private String operation;
-        private Object customer;
-
-        public WebSocketMessage(String operation, Object customer) {
-            this.operation = operation;
-            this.customer = customer;
-        }
-
-        public String getOperation() {
-            return operation;
-        }
-
-        public Object getCustomer() {
-            return customer;
+            System.err.println(" Error serializing JSON: " + e.getMessage());
         }
     }
 }

@@ -1,18 +1,22 @@
-package com.microserviciologistic.createcustomer.config;
+package com.microserviciologistic.createcustomer.websocket;
 
 import jakarta.websocket.*;
 
 import java.net.URI;
+import java.util.function.Consumer;
 
 @ClientEndpoint
 public class PlainWebSocketClient {
 
     private Session userSession;
-    private URI endpointURI;
+    private final URI endpointURI;
+    private final Consumer<String> messageHandler;
+    private final Runnable disconnectionHandler;
 
-    // Exception the connection knows if it fails.
-    public PlainWebSocketClient(URI endpointURI) throws Exception {
+    public PlainWebSocketClient(URI endpointURI, Consumer<String> messageHandler, Runnable disconnectionHandler) throws Exception {
         this.endpointURI = endpointURI;
+        this.messageHandler = messageHandler;
+        this.disconnectionHandler = disconnectionHandler;
         connect();
     }
 
@@ -29,18 +33,15 @@ public class PlainWebSocketClient {
 
     @OnClose
     public void onClose(Session session, CloseReason reason) {
-        System.out.println("Disconnected to WebSocket: " + reason.getReasonPhrase());
+        System.err.println("Disconnected from WebSocket: " + reason.getReasonPhrase());
         this.userSession = null;
-    }
-
-    @OnError
-    public void onError(Session session, Throwable throwable) {
-        System.err.println("Error on WebSocket: " + throwable.getMessage());
+        disconnectionHandler.run();
     }
 
     @OnMessage
     public void onMessage(String message) {
-        System.out.println("Message recived: " + message);
+        System.out.println("Message received: " + message);
+        messageHandler.accept(message);
     }
 
     public boolean isConnected() {
