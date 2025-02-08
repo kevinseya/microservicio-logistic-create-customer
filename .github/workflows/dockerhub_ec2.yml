@@ -44,21 +44,21 @@ jobs:
               sudo systemctl enable docker
             fi
 
-            # Bajar la imagen
+            # Download the image
             sudo docker pull kevinseya/logistic_create_customer:latest
 
-            # Detener y eliminar contenedor anterior
+            # Stop and remove previous container
             sudo docker stop logistic_create_customer || true
             sudo docker rm logistic_create_customer || true
 
-            # Generar archivo .env
+            # Generate .env file
             echo "DB_IP=${{ secrets.DB_IP }}" > .env
             echo "DB_USER=${{ secrets.DB_USER }}" >> .env
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
             echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env
             echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
 
-            # Ejecutar nuevo contenedor
+           # Run new container
             sudo docker run -d --name logistic_create_customer \
               --env-file .env \
               -p 8080:8080 \
