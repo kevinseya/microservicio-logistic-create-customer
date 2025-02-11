@@ -19,14 +19,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/customers") // Base de todos los endpoints
+@RequestMapping("/api/customers") // Base of all endpoints
 @Tag(name = "Customers", description = "Endpoints for managing customers")
 public class CustomerController {
 
     private final CustomerService customerService;
     private final RestTemplate restTemplate;
 
-    private final String notificationServiceUrl = "http://localhost:5000/notify"; // URL del microservicio de notificaciones
+    private final String notificationServiceUrl = "http://localhost:5000/notify"; // Notification microservice URL
 
     @Autowired
     public CustomerController(CustomerService customerService, RestTemplate restTemplate) {
